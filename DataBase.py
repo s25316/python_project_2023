@@ -1,307 +1,252 @@
-import sqlite3
-import os
-from datetime import datetime
+from DataBaseClass import *
 
-path_to_file = os.getcwd()+"\\Report"
+# Update -> choce
+# Select -> choce
 
-yes = "tak"
-no = "nie"
+def print_pair(pair: Pair):
+    print(pair.get_first(), pair.get_hand(), sep='\n')
 
-id_ = "id"
-name_ = "name"
-description_ = "description"
-price_ = "price"
-amount_ = "amount"
+def choice():
+    print("""
+    Wybierz opcje:
 
+    1. Dodaj rekord z podaniem id
+    2. Dodaj rekord bez podania id
+    3. Usuń rekord
+    4. Wyszukaj rekord (Select)
+    5. Generuj raport
+    6. Aktualizuj rekord
+    7. Wyjdż z programu
+    """)
 
+    try:
+        option = int(input())
+        return option
+    except ValueError:
+        print("Wprowadzono niekorektne id")
+        return choice()
 
-# ERRORS
-error_uncorrect = "Wprowadzono niekorektne dane: "
+#1. Add product with id
+def add_product_with_id ():
+    get_id = input("Wprowadż id produktu: \n")
+    get_name = input("Wprowadż nazwę produktu: \n")
+    get_descriprion = input("Wprowadż opis produktu: \n")
+    get_price = input("Wprowadż cenę produktu: \n")
+    get_amount = input("Wprowadż liczbę produktu: \n")
 
-uncorrect_id = "id"
-uncorrect_price = "cena/y"
-uncorrect_type = "cena/y"
-uncorrect_amount = "ilość/i"
-
-error_type = " typ/u "
-error_price_val = " powinno być \"00.00\" "
-error_lower_0 = " powinno być >= 0 "
-
-#Staitments
-staitment_database_created = "Baza danych z podną nazwą została utwożona: "
-
-staitment_0_products_in_databse = "Brak produkt/ów w bbazie danyych"
-
-staitment_product_id_exist = "Produkt/y pod podanym id insnieje/ą, id:"
-staitment_product_id_not_exist = "Produkt/y pod podanym id nie insnieje/ą, id:"
-staitment_product_name_not_exist = "Produkt/y z nazwą o wartości nie insnieje/ą, wartość:"
-
-
-staitment_product_added = "Produkt dodany pod numerem id: "
-staitment_product_not_added = "Produkt nie dodany pod numerem id: "
-
-
-staitment_deleted_success = "Wartość z podanym id zosała usunięta, id: "
-staitment_deleted_unsuccess = "Wartość z podanym id nie zosała usunięta, id: "
-
-staitment_operaton_realizated = "Operacja wykonana"
-staitment_operaton_denied = "Operacja przerwana"
-
-
-#Questions
-question_for_delete = "Czy na pewno chesz usunąc dany produkt ? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update = "Czy na pewno chesz aktualizować dane danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update_id = "Czy chesz aktualizować dane "+id_+" danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update_name =  "Czy chesz aktualizować dane "+name_+" danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update_description =  "Czy chesz aktualizować dane "+description_+" danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update_price =  "Czy chesz aktualizować dane "+price_+" danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-question_for_update_amount =  "Czy chesz aktualizować dane "+amount_+" danego produktu? Tak wpisz \""+yes+"\", Nie wpisz dowolną wartość \n"
-
-command_set_id = "Wpisz nowe"+id_+":\n"
-command_set_name = "Wpisz nowe"+name_+":\n"
-command_set_description = "Wpisz nowe"+description_+":\n"
-command_set_price = "Wpisz nowe"+price_+":\n"
-command_set_amount = "Wpisz nowe"+amount_+":\n"
-
-
-#Classes
-#=====================================================================     
-#=====================================================================     
-
-class Pair :
-    def __init__ (self, first , hand ):
-        try :
-            self.first = bool (first)
-        except ValueError:
-            print ("Uncorrect information should be bool")
-        self.hand = hand
-
-    def get_first (self):
-        return self.first
-
-    def get_hand (self):
-        return self.hand
-
-    def set_hand (self, hand2):
-        self.hand = hand2 
+    x = a.add_product_with_id (get_id,get_name, get_descriprion,get_price, get_amount )
+    print_pair(x)
     
-#=====================================================================     
-class DataBase :
-
-    def is_correct_id ( self, indeteficator ):
-        is_correct = True
-        error_information = error_uncorrect + uncorrect_id + " - "
-        try:
-            x = int (indeteficator)
-        except ValueError:
-            is_correct = False
-            error_information = error_information + error_type 
-        return Pair ( is_correct, error_information + " (" + str (indeteficator) + ")")
-
-    def is_correct_price ( self, price ):
-        is_correct = True
-        error_information = error_uncorrect + uncorrect_price  + " - "
-        try:
-            x = float (price)
-            if x < float (0) :
-                is_correct = False
-                error_information = error_information + error_lower_0
-
-            x = (x * 1000) % 10                
-            if x > 0 :
-                is_correct = False
-                error_information = error_information + error_price_val            
-
-        except ValueError:
-            is_correct = False
-            error_information = error_information + error_type
-        return Pair ( is_correct, error_information + " (" + str ( price ) + ")" )
-
-    def is_correct_amount ( self, amount ):
-        is_correct = True
-        error_information = error_uncorrect + uncorrect_amount  + " - "
-        #vereficaton amount correct data and >= 0
-        try:
-            x = int (amount)
-            if x < 0 :
-                error_information = error_information + error_lower_0
-                is_correct = False
-        except ValueError:
-            error_information = error_information + error_type
-            is_correct = False
-        return Pair (is_correct, error_information + " (" + str (amount) + ")" )
-
-    #=====================================================================
-    def __init__ (self, database_name):
-        self.database_name = database_name
-        self.database = sqlite3.connect(database_name)
-        #self.database.row_factory = sqlite3.Row
-        self.cur = self.database.cursor()
-
-    def close_connection (self):
-        self.database.close()
+#2. Add product without id
+def add_product_without_id ():
+    get_name = input("Wprowadż nazwę produktu: \n")
+    get_descriprion = input("Wprowadż opis produktu: \n")
+    get_price = input("Wprowadż cenę produktu: \n")
+    get_amount = input("Wprowadż liczbę produktu: \n")
     
-    def create_base (self):
-        self.cur.executescript("""
-                        DROP TABLE IF EXISTS warehouse;
-                        CREATE TABLE IF NOT EXISTS warehouse (
-                            id INTEGER PRIMARY KEY ASC,
-                            name varchar(250) NOT NULL,
-                            description varchar(1000),
-                            price MONEY NOT NULL,
-                            amount INTEGER NOT NULL
-                        );
-                        """)
-        self.database.commit()
-        print (staitment_database_created + self.database_name )
+    x = a.add_product_without_id (get_name, get_descriprion,get_price, get_amount )
 
-    
-    #=====================================================================
+    print_pair(x)
 
-    def is_exist_id (self, indeteficator):
-        is_exist = True
-        information = ""
-        is_correct = self.is_correct_id (indeteficator)
-        if is_correct. get_first() == True :
-            amount_of_records = self.cur.execute(""" SELECT COUNT (1) FROM warehouse WHERE ID = ?""", (int (indeteficator),)).fetchall() [0][0]
-    
-            if amount_of_records > 0 :
-                is_exist = True
-                information = staitment_product_id_exist + str (indeteficator) 
-            else :
-                is_exist = False
-                information = staitment_product_id_not_exist +  str (indeteficator) 
-        else :
-            is_exist = False
-            information = is_correct. get_hand ()
-        return Pair (is_exist , information )
+#3. Delete
+def delete ():
+    pair = a.select_all()
+    print_pair(pair=pair)
+    get_id = input("Wprowadż id produktu: \n")
 
+    x = a.delete (get_id)
     
-    #=====================================================================
+    print_pair(x)
+    
+#4.1 Select all
+def select_all():
+    print("""
+    Wybierz za jaką wrtością będzie sortowanie (domyślny = id):
+
+    1. Id
+    2. Nazwa
+    3. Cena
+    4. Liczba
+    """)
+    try:
+        option = int(input())
+        order_by = OrderBy.by_id
+        if option == 2:
+            order_by = OrderBy.by_name
+        elif option == 3:
+            order_by = OrderBy.by_price
+        elif option == 4: 
+            order_by = OrderBy.by_amount
+        pair = a.select_all(order=order_by)
+        print_pair(pair=pair)
+    except ValueError:
+        print("Niepoprawana wrtość")
+        return select_all()
+
+#4.2 Select by id
+def select_by_id():
+    try:
+        id = int(input("Wpisz id: "))
+        pair = a.select_by_id(id)
+        print_pair(pair=pair)
+    except ValueError:
+        print("Niepoprawana wrtość")
+        return select_by_id()
+    
+#4.3 Select by name
+def select_by_name():
+    name = input("Wpisz nazwę: ")
+    pair = a.select_by_name(name)
+    print_pair(pair=pair)
+
+#4. Select
+def select():
+    print("""
+    Wybierz opcje:
+
+    1. Wyszukaj wszystkie rekordy
+    2. Wyszukaj wszystkie rekordy za id
+    3. Wyszukaj wszystkie rekordy za nazwą
+    """)
+    
+    try:
+        option = int(input())
+        if option == 1:
+            select_all()
+        elif option == 2:
+            select_by_id()
+        elif option == 3:
+            select_by_name()
+        else:
+            print('Podana opcja nie istnieje')
+    except ValueError:
+        print("Wprowadzono niekorektne id")
+
+#5. Report
+def report ():
+    try :
+        by_what = int (input ("""
+        Wyberz za jakim parametrem będzie sortowany raport :\n 
+        1. Za 'id' \n 
+        2. Za 'nazwą' \n
+        3. Za 'ceną' \n
+        4. Za liczbą \n
+        Wpisz wartość z powyższych: \n'"""))
+        orderBy_local = OrderBy.by_id
         
-    def add_product_with_id (self, indeteficator , name, description, price, amount):
-        is_inserted = True
-        information = ""
-        is_correct_id = self. is_correct_id ( indeteficator )
-        is_exist_id = self. is_exist_id ( indeteficator )
-        is_correct_price = self . is_correct_price ( price )
-        is_correct_amount = self . is_correct_amount ( amount )
+        if by_what == 2 :
+            orderBy_local = OrderBy.by_name
+        elif by_what == 3 :
+            orderBy_local = OrderBy.by_price
+        elif by_what == 4 :
+            orderBy_local = OrderBy.by_amount
 
-        if is_correct_id. get_first() == True and is_exist_id. get_first() == False and is_correct_price. get_first() == True and is_correct_amount. get_first() == True :
-            
-    
-            self.cur.execute('INSERT INTO warehouse VALUES(?, ?, ?, ?, ?);', (indeteficator , name.upper(), description.upper(), price, amount))
-            self.database.commit()
-            information = staitment_product_added + str (indeteficator)        
-        else :
-            is_inserted = False
-            information = staitment_product_not_added + str (indeteficator) + "\n\n"
-            if is_correct_id. get_first() != True:
-                information = information + is_correct_id. get_hand() + "\n"
-            if is_correct_id. get_first() == True and is_exist_id. get_first() != False :
-                information = information + is_exist_id. get_hand() + "\n"
-            if is_correct_price. get_first() != True :
-                information = information + is_correct_price. get_hand() + "\n"
-            if is_correct_amount. get_first() != True :
-                information = information + is_correct_amount. get_hand() + "\n"
-            
-        return Pair (is_inserted, information)
+        x = a.make_report (orderBy_local)
+        print_pair (x)
+    except ValueError:
+        print ("Wprowadzono niepoprwaną wartość")
 
-    def add_product_without_id(self, name, description, price, amount):
-        amount_of_records = self.cur.execute(""" SELECT COUNT (1) FROM warehouse""").fetchall() [0][0]
-        max_id = 0
-        if amount_of_records != 0:
-            max_id = self.cur.execute(""" SELECT MAX (id) FROM warehouse""").fetchall() [0][0]
-            max_id = max_id + 1
-        is_added = self. add_product_with_id ( max_id , name, description, price, amount)
-        return Pair ( is_added.get_first() , is_added. get_hand())
-    
-    #=====================================================================
-    def table_to_string (self, table):
-        text = ""
-        text += id_+"\t|\t"+name_ +"\t|\t"+ description_+"\t|\t"+price_+"\t|\t"+amount_ +"\n"
-        for line in table:
-            for value in line:
-                text += str (value) + "\t|\t"
-            text += "\n"
-        return  text
-    
-    def select_by_id (self, indeteficator):
-        is_exist_values = True
-        information = ""
-        is_exist_id = self. is_exist_id ( indeteficator )
-        if is_exist_id. get_first() == True :
-            table = self. cur.execute(""" SELECT * FROM warehouse WHERE ID = ?""", (int (indeteficator),)).fetchall()
-            return Pair ( True ,  self. table_to_string (table))
-        
-        else :
-            return Pair ( False , is_exist_id. get_hand() )
+#Id selection for update methods
+def select_id_for_update():
+    pair = a.select_all()
+    print_pair(pair=pair)
+    try:
+        id = int(input('Wpisz id: '))
+        return id
+    except ValueError:
+        print("Niepoprawana wartość ") 
+        return int(select_id_for_update())
 
-    def select_by_name (self, value):
-        amount_of_records = self. cur.execute(""" SELECT * FROM warehouse
-                                        WHERE name LIKE ? or
-                                        name LIKE ? or
-                                        name LIKE ? """, (value+'%','%'+value+'%','%'+value)).fetchall() [0][0]
-    
-        if amount_of_records > 0 :
-            table = self. cur.execute(""" SELECT * FROM warehouse
-                                        WHERE name LIKE ? or
-                                        name LIKE ? or
-                                        name LIKE ? """, (value+'%','%'+value+'%','%'+value)).fetchall() 
-            return Pair ( True ,  self. table_to_string (table))
-        else :
-            return Pair ( False ,  staitment_product_name_not_exist +  str (value) )
+#6.1 Update name
+def update_name():
+    id = select_id_for_update()
+    name = input('Wprowadż nową nazwę: ')
+    pair = a.update_name(id, name)
+    print_pair(pair=pair)
 
-    def select_all (self):
-        amount_of_records = self. cur.execute(""" SELECT COUNT (1) FROM warehouse """).fetchall() [0][0]
-    
-        if amount_of_records > 0 :
-            table = self. cur.execute(""" SELECT * FROM warehouse """).fetchall() 
-            return Pair ( True ,  self. table_to_string (table))
-        else :
-            return Pair ( False ,  staitment_0_products_in_databse )
+#6.2 Update description
+def update_description():
+    id = select_id_for_update
+    description = input('Wprowadż nowy opis: ')
+    pair = a.update_description(id, description)
+    print_pair(pair=pair)
 
-    def select (self, value = "a" , by_what = "a" ):
-        # dopracować
-        if by_what.upper() == id_.upper() :
-            return self. select_by_id ( value)
-        elif by_what.upper()  == name_.upper() :
-            return self. select_by_name ( value)
-        else :
-            return self. select_all ()
-        
-    #=====================================================================
-    def delete (self, indeteficator):
-        is_exist_id = self. is_exist_id ( indeteficator )  
-    
-        if is_exist_id. get_first () == True :
-            self . cur.execute(""" DELETE FROM warehouse WHERE id=?""" ,  (indeteficator,))
-            self . database.commit()
-            
-            return Pair ( True ,  staitment_deleted_success + str (indeteficator) )
-        else :
-            return Pair ( False ,  staitment_deleted_unsuccess + str (indeteficator) + "\n" + is_exist_id. get_hand() )
-    #=====================================================================
-    
-a = DataBase ("magazyn")
-a.create_base ()
-x = a. select ()
-print (x.get_first()," ",x.get_hand() )
-x = a. add_product_with_id (0,"Ogórek szklarniowy", "Polska", 4.55, 100)
-print (x.get_first()," ",x.get_hand() )
-x = a. add_product_with_id (0,"Ogórek szklarniowy", "Polska", -4.545, -100)
-print (x.get_first()," ",x.get_hand() )
-x = a. add_product_without_id ("Pomidory na gałązce", "Polska", 4.99, 250)
-print (x.get_first()," ",x.get_hand() )
+#6.3 Update price
+def update_price():
+    id = select_id_for_update()
+    try:
+        price = float(input('Wprowadż nową cenę: '))
+        pair = a.update_price(id, price)
+        print_pair(pair=pair)
+    except ValueError:
+        print("Niepoprawana wartość ") 
+        return update_price()
 
-x = a. select (12, id_)
-print (x.get_first()," ",x.get_hand() )
-x = a. select ()
-print (x.get_first()," ",x.get_hand() )
-x = a. delete  (12)
-print (x.get_first()," ",x.get_hand() )
-x = a. delete  (1)
-print (x.get_first()," ",x.get_hand() )
-a.close_connection ()
+#6.4 Update amount    
+def update_amount():
+    id = select_id_for_update()
+    try:
+        amount = int(input('Wprowadż nową liczbę produktów: '))
+        pair = a.update_amount(id, amount)
+        print_pair(pair=pair)
+    except ValueError:
+        print("Niepoprawana wartość ") 
+        return update_amount()
 
-#asasasasas
+#6. Update
+def update():
+    print("""
+    Co aktualizujemy:
+
+    1. Nazwę
+    2. Opis
+    3. Cenę
+    4. Liczbę produktów
+    """)
+
+    try:
+        option = int(input())
+        if option == 1:
+            update_name()
+        elif option == 2:
+            update_description()
+        elif option == 3:
+            update_price()
+        elif option == 4:
+            update_amount()
+        else:
+            print("Podana opcja nie istnieje")
+            return update()
+    except ValueError:
+        print("Niepoprawana wartość ")
+        return update()
+
+#7. Exit
+def exit_program():
+    pair = a.close_connection()
+    print_pair(pair=pair)
+    exit()
+
+#Program begin
+if __name__ == '__main__':
+    a = DataBase ("magazyn")
+    a.create_base ()
+
+    while True:
+        option = choice()
+        if option == 1:
+            add_product_with_id()
+        elif option == 2:
+            add_product_without_id()
+        elif option == 3:
+            delete()
+        elif option == 4:
+            select()
+        elif option == 5:
+            report()
+        elif option == 6:
+            update()
+        elif option == 7:
+            exit_program()
+        else:
+            print("Podana opcja nie istnieje wybeirz opcje z podanych ")
